@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Workout Buddy — MVP</title>
+<meta name="theme-color" content="#0f0f13">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+  :root{--ink:#0b0b0b; --bg:#0f0f13; --card:#16161c; --muted:#a6accd; --accent:#ffd54a; --accent2:#64d6ff; --ok:#7CFC9C; --danger:#ff6b6b;}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: radial-gradient(1200px 800px at 50% -10%, #22283a 0%, #0f0f13 55%); color:#fff; -webkit-font-smoothing:antialiased;}
+  .app{max-width:520px; margin:0 auto; padding:12px 12px 120px}
+  header{position:sticky; top:0; z-index:5; backdrop-filter:saturate(120%) blur(10px); background:linear-gradient(#0f0f1399,#0f0f1300); padding:12px 4px;}
+  .brand{display:flex; align-items:center; gap:12px}
+  .brand img{width:42px; height:42px; image-rendering:pixelated}
+  .brand h1{font-size:20px; margin:0; font-weight:800; letter-spacing:.4px}
+  .sub{font-size:12px; color:#cfcfcf; opacity:.8; margin-top:2px}
+  .card{background:linear-gradient(180deg, #1b1c26, #14151c); border:1px solid #262739; border-radius:16px; padding:14px; margin:12px 0; box-shadow:0 6px 22px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);}
+  .cta{display:block; border:none; background:linear-gradient(90deg, var(--accent), #ffe27a); color:#111; font-weight:900; padding:14px 16px; border-radius:12px; width:100%; text-align:center; cursor:pointer; box-shadow:0 6px 18px #ffd54a44, inset 0 1px 0 #fff9;}
+  .cta.secondary{background:linear-gradient(90deg, #1f2633, #222942); color:#fff; border:1px solid #2c3150; box-shadow:none}
+  .row{display:flex; gap:10px; align-items:center} .row.space{justify-content:space-between}
+  .k{font-size:12px; color:#cfd2ff99; text-transform:uppercase; letter-spacing:.6px} .v{font-weight:800}
+  .pill{padding:6px 10px; border:1px solid #2b2d43; border-radius:999px; font-weight:800; font-size:12px; background:#0e101a}
+  .muted{color:#aeb2d8aa; font-size:12px} .tiny{font-size:11px; opacity:.8}
+  .streak{display:flex; gap:8px; justify-content:center; padding:8px 0 0}
+  .dot{width:16px;height:16px;border-radius:3px;background:#24263a;border:1px solid #2f3150; box-shadow:inset 0 1px 0 #ffffff11}
+  .dot.on{background:linear-gradient(180deg, #ffe178, #ffbe33); border-color:#e3b438; box-shadow:0 0 0 2px #ffd54a22, inset 0 1px 0 #fff8}
+  .plan-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px}
+  .plan-title{font-weight:900; font-size:16px}
+  .ex{display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:#10131c; border:1px solid #20243a; border-radius:12px; margin-top:8px}
+  .ex .name{font-weight:800} .ex .meta{font-size:12px; color:#cbd1ffcc} .ex button{border:none; background:#18203a; color:#fff; font-weight:900; padding:8px 10px; border-radius:8px}
+  .timer{display:none; position:fixed; left:0; right:0; bottom:0; z-index:10; padding:14px; background:#0e1020ee; border-top:1px solid #262739; box-shadow:0 -10px 30px rgba(0,0,0,.4)}
+  .timer.active{display:block} .t-top{display:flex; gap:12px; align-items:center}
+  .sprite{width:88px; height:88px; border-radius:14px; border:1px solid #2a2f49; background:#121424; display:flex; align-items:center; justify-content:center}
+  .sprite img{width:76px;height:76px; image-rendering:pixelated} .t-info{flex:1}
+  .big{font-size:42px; font-weight:900; letter-spacing:1px} .phase{font-size:12px; text-transform:uppercase; letter-spacing:.8px; color:#cdd3ffcc}
+  .t-ctrl{display:flex; gap:8px; margin-top:10px}
+  .btn{flex:1; padding:12px; border-radius:12px; border:1px solid #2b2f49; background:#171b2d; color:#fff; font-weight:800}
+  .btn.go{background:linear-gradient(90deg, #7CFC9C, #bdfccf); color:#0d1a14; border:none}
+  .btn.danger{background:#2a1a1a; border:1px solid #4a2222; color:#ff8f8f}
+  .done{color:var(--ok); font-weight:900}
+  .builder label{display:block; font-size:12px; color:#cdd3ffcc; margin:8px 0 6px}
+  .builder input{width:100%; padding:10px; border-radius:10px; border:1px solid #2a2f49; background:#0e1120; color:#fff}
+  .builder .grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px}
+  .footer{color:#899; font-size:11px; text-align:center; margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="app" style="padding-bottom:0">
+    <div class="brand">
+      <img src="logo.png" alt="" onerror="this.style.display='none'">
+      <div>
+        <h1>Workout Buddy</h1>
+        <div class="sub">Form the habit. One session at a time.</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="app">
+  <!-- Onboarding -->
+  <section id="onboard" class="card" style="display:none">
+    <div class="row space">
+      <div>
+        <div class="k">Welcome</div>
+        <div class="v">Let’s keep it simple</div>
+        <div class="muted">Pick your weekly target and start today. Everything saves locally.</div>
+      </div>
+      <div class="pill">MVP</div>
+    </div>
+    <div style="margin:10px 0 14px">
+      <div class="k">Your Name</div>
+      <input id="name" placeholder="Ricc" style="width:100%; padding:10px; border-radius:10px; border:1px solid #2a2f49; background:#0e1120; color:#fff">
+    </div>
+    <div>
+      <div class="k">Workout Days per Week</div>
+      <div class="row" style="gap:8px; margin-top:6px">
+        <button class="pill" data-days="2">2</button>
+        <button class="pill" data-days="3">3</button>
+        <button class="pill" data-days="4">4</button>
+        <button class="pill" data-days="5">5</button>
+      </div>
+    </div>
+    <div style="height:8px"></div>
+    <button id="saveOnboard" class="cta">Save & Start</button>
+  </section>
+
+  <!-- Streak -->
+  <section class="card" id="streakCard">
+    <div class="row space">
+      <div>
+        <div class="k">Streak</div>
+        <div class="v"><span id="streakCount">0</span> days</div>
+      </div>
+      <div class="pill" id="weekGoal">Goal: 3×/wk</div>
+    </div>
+    <div class="streak" id="streakDots"></div>
+    <div class="tiny" id="streakMsg" style="text-align:center; margin-top:8px">Fill today’s dot by completing one workout.</div>
+  </section>
+
+  <!-- Today Plan -->
+  <section class="card">
+    <div class="plan-head">
+      <div>
+        <div class="k">Today</div>
+        <div class="plan-title" id="planName">Push (Upper)</div>
+      </div>
+      <div class="pill" id="todayDate"></div>
+    </div>
+    <div id="planList"></div>
+    <div class="row" style="gap:8px; margin-top:12px">
+      <button id="startAll" class="cta">Start Workout</button>
+      <button id="swapPlan" class="cta secondary">Swap Day</button>
+    </div>
+  </section>
+
+  <!-- Builder -->
+  <section class="card builder">
+    <div class="k">Add exercise</div>
+    <div class="grid">
+      <div><label>Name</label><input id="b_name" placeholder="Dumbbell Curl"></div>
+      <div><label>Sets</label><input id="b_sets" type="number" min="1" value="3"></div>
+      <div><label>Reps</label><input id="b_reps" type="number" min="1" value="10"></div>
+    </div>
+    <div class="grid" style="margin-top:8px">
+      <div><label>Rest (sec)</label><input id="b_rest" type="number" min="10" value="60"></div>
+      <div style="grid-column: span 2; display:flex; align-items:end"><button id="addEx" class="cta secondary" style="width:100%">Add to today</button></div>
+    </div>
+    <div class="footer">Tip: keep exercises few and focused. Progress beats perfection.</div>
+  </section>
+</main>
+
+<!-- Timer Dock -->
+<section class="timer" id="timerDock" aria-live="polite">
+  <div class="t-top">
+    <div class="sprite"><img id="sprite" src="rest_1.png" alt="sprite"></div>
+    <div class="t-info">
+      <div class="k" id="phaseText">Get ready</div>
+      <div class="big" id="timeText">00:00</div>
+      <div class="tiny" id="exMeta">Bench Press — Set 1/4 • 8 reps</div>
+      <div class="t-ctrl">
+        <button id="goBtn" class="btn go">Start Set</button>
+        <button id="skipBtn" class="btn">Skip Rest</button>
+        <button id="stopBtn" class="btn danger">End</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const $ = s=>document.querySelector(s);
+  const todayKey = new Date().toISOString().slice(0,10);
+  const storage = { get(k, d){ try{return JSON.parse(localStorage.getItem(k)) ?? d}catch{return d}}, set(k, v){ localStorage.setItem(k, JSON.stringify(v))}};
+
+  // User prefs + simple 3-day rotation
+  const defaultUser = { name:'', days:3, planIndex:0 };
+  const user = Object.assign(defaultUser, storage.get('wb_user', {}));
+  const plans = [
+    { name:'Push (Upper)', items:[
+      { name:'Push Ups', sets:4, reps:10, rest:60 },
+      { name:'Dumbbell Bench Press', sets:4, reps:8, rest:90 },
+      { name:'Overhead Press', sets:3, reps:8, rest:90 },
+      { name:'Triceps Dips (bench)', sets:3, reps:12, rest:60 },
+    ]},
+    { name:'Pull (Upper)', items:[
+      { name:'One-arm Row', sets:4, reps:10, rest:75 },
+      { name:'Dumbbell Row (both)', sets:3, reps:8, rest:90 },
+      { name:'Hammer Curls', sets:3, reps:12, rest:60 },
+      { name:'Rear Delt Raises', sets:3, reps:12, rest:60 },
+    ]},
+    { name:'Legs & Core', items:[
+      { name:'Goblet Squat', sets:4, reps:10, rest:90 },
+      { name:'Romanian Deadlift', sets:3, reps:10, rest:90 },
+      { name:'Reverse Lunges', sets:3, reps:10, rest:75 },
+      { name:'Plank', sets:3, reps:40, rest:45, isTime:true },
+    ]}
+  ];
+
+  // Onboarding
+  const onboard = $('#onboard');
+  const nameInput = $('#name'); const daysBtns = onboard.querySelectorAll('[data-days]');
+  let tempDays = user.days;
+  daysBtns.forEach(b=>b.addEventListener('click',()=>{ tempDays = parseInt(b.dataset.days,10); daysBtns.forEach(x=>x.classList.remove('on')); b.classList.add('on'); }));
+  $('#saveOnboard').addEventListener('click',()=>{ user.name = nameInput.value.trim() || 'You'; user.days = tempDays || 3; storage.set('wb_user', user); renderAll(); });
+  function maybeShowOnboard(){ onboard.style.display = user.name ? 'none' : 'block'; }
+
+  // Streaks
+  function getWeekStart(d=new Date()){ const x = new Date(d); x.setHours(0,0,0,0); const wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); return x; }
+  function renderStreak(){
+    $('#weekGoal').textContent = `Goal: ${user.days}×/wk`;
+    const doneDays = storage.get('wb_done_days', []);
+    let chain = 0; const back = new Date(); while(doneDays.includes(back.toISOString().slice(0,10))){ chain++; back.setDate(back.getDate()-1); }
+    $('#streakCount').textContent = chain;
+    const bar = $('#streakDots'); bar.innerHTML=''; const week = getWeekStart(); let filled=0;
+    for(let i=0;i<7;i++){ const d = new Date(week); d.setDate(week.getDate()+i); const key = d.toISOString().slice(0,10);
+      const dot = document.createElement('div'); dot.className='dot'; if(doneDays.includes(key)){ dot.classList.add('on'); filled++; } bar.appendChild(dot); }
+    $('#streakMsg').textContent = filled>=user.days ? 'Goal hit this week. Hero.' : 'Fill today’s dot by completing one workout.';
+  }
+  function markToday(){ const dd = storage.get('wb_done_days', []); if(!dd.includes(todayKey)){ dd.push(todayKey); storage.set('wb_done_days', dd); } renderStreak(); }
+
+  // Plan
+  const planName = $('#planName'); const planList = $('#planList');
+  function getTodayPlan(){ const idx = storage.get('wb_plan_index', 0) % plans.length; return { idx, plan: plans[idx] }; }
+  function setNextPlan(){ const n=(getTodayPlan().idx+1)%plans.length; storage.set('wb_plan_index', n); renderPlan(); }
+  function renderPlan(){
+    const {plan} = getTodayPlan(); planName.textContent = plan.name;
+    $('#todayDate').textContent = new Date().toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+    planList.innerHTML = '';
+    plan.items.forEach((ex, i)=>{ const row = document.createElement('div'); row.className='ex';
+      const left = document.createElement('div'); left.innerHTML = `<div class="name">${ex.name}</div><div class="meta">${ex.sets}×${ex.isTime?ex.reps+'s':ex.reps} · Rest ${ex.rest}s</div>`;
+      const btn = document.createElement('button'); btn.textContent = 'Start'; btn.addEventListener('click',()=>startWorkout(i));
+      row.appendChild(left); row.appendChild(btn); planList.appendChild(row); });
+  }
+
+  // Builder
+  $('#addEx').addEventListener('click',()=>{ const nm=$('#b_name').value.trim(); if(!nm) return;
+    const sets=parseInt($('#b_sets').value,10)||3; const reps=parseInt($('#b_reps').value,10)||10; const rest=parseInt($('#b_rest').value,10)||60;
+    const { plan, idx } = getTodayPlan(); plan.items.push({ name:nm, sets, reps, rest });
+    let custom = storage.get('wb_custom_plans', {}); custom[idx]=plan.items; storage.set('wb_custom_plans', custom);
+    renderPlan(); $('#b_name').value=''; });
+
+  function loadCustomIfAny(){ const { plan, idx } = getTodayPlan(); const custom = storage.get('wb_custom_plans', {}); if(custom[idx]){ plan.items = custom[idx]; } }
+
+  // Timer + animation
+  const dock = $('#timerDock'); const timeText = $('#timeText'); const phaseText = $('#phaseText'); const exMeta = $('#exMeta');
+  const goBtn = $('#goBtn'); const skipBtn = $('#skipBtn'); const stopBtn = $('#stopBtn'); const sprite = $('#sprite');
+  const workFrames = ['loading_1.png','loading_2.png','loading_3.png','loading_4.png'];
+  const restFrames = ['rest_1.png','rest_2.png']; let frameIx=0, frameLoop=null;
+  function setFrames(arr, speed){ clearInterval(frameLoop); frameIx=0; sprite.src=arr[0]; frameLoop=setInterval(()=>{ frameIx=(frameIx+1)%arr.length; sprite.src=arr[frameIx]; }, speed); }
+  function stopFrames(){ clearInterval(frameLoop); }
+
+  let flow=null;
+  function startWorkout(exIndex){ const { plan } = getTodayPlan(); dock.classList.add('active'); const ex = plan.items[exIndex];
+    flow = { plan, exIndex, set:1, remaining:0, phase:'idle', interval:null };
+    exMeta.textContent = `${ex.name} — Set ${flow.set}/${ex.sets} • ${ex.isTime?ex.reps+'s':ex.reps} reps`;
+    phaseText.textContent = 'Get ready'; timeText.textContent='00:00'; sprite.src='rest_1.png'; }
+
+  function beginSet(){ const ex = flow.plan.items[flow.exIndex]; flow.phase='work';
+    flow.remaining = ex.isTime ? ex.reps : Math.max(25, Math.min(60, ex.reps*3));
+    phaseText.textContent='Work'; setFrames(workFrames, 180); tick(); }
+
+  function beginRest(){ const ex = flow.plan.items[flow.exIndex]; flow.phase='rest'; flow.remaining = ex.rest; phaseText.textContent='Rest'; setFrames(restFrames, 650); tick(); }
+
+  function tick(){ clearInterval(flow.interval); timeText.textContent = fmt(flow.remaining); flow.interval = setInterval(()=>{
+      flow.remaining--; timeText.textContent = fmt(Math.max(0,flow.remaining));
+      if(flow.remaining<=0){ clearInterval(flow.interval);
+        if(flow.phase==='work'){ beginRest(); }
+        else if(flow.phase==='rest'){
+          if(flow.set < flow.plan.items[flow.exIndex].sets){
+            flow.set++; exMeta.textContent = `${flow.plan.items[flow.exIndex].name} — Set ${flow.set}/${flow.plan.items[flow.exIndex].sets} • ${flow.plan.items[flow.exIndex].isTime?flow.plan.items[flow.exIndex].reps+'s':flow.plan.items[flow.exIndex].reps} reps`;
+            flow.phase='idle'; phaseText.textContent='Tap to start next set'; stopFrames();
+          }else{
+            if(flow.exIndex < flow.plan.items.length-1){
+              flow.exIndex++; flow.set=1; const ex = flow.plan.items[flow.exIndex];
+              exMeta.textContent = `${ex.name} — Set 1/${ex.sets} • ${ex.isTime?ex.reps+'s':ex.reps} reps`;
+              flow.phase='idle'; phaseText.textContent='Next exercise ready'; stopFrames();
+            }else{
+              phaseText.textContent='Complete'; timeText.innerHTML='<span class="done">DONE</span>';
+              markToday(); setNextPlan(); setTimeout(()=>{ endDock(); }, 1200);
+            }
+          }
+        }
+      }
+    }, 1000);
+  }
+
+  function endDock(){ dock.classList.remove('active'); clearInterval(flow?.interval); stopFrames(); flow=null; }
+  function fmt(t){ const m=Math.floor(t/60).toString().padStart(2,'0'); const s=(t%60).toString().padStart(2,'0'); return `${m}:${s}`}
+  goBtn.addEventListener('click',()=>{ if(!flow) return; if(flow.phase==='idle' || flow.phase==='rest'){ beginSet(); }});
+  skipBtn.addEventListener('click',()=>{ if(flow?.phase==='rest'){ clearInterval(flow.interval); flow.remaining=0; }});
+  stopBtn.addEventListener('click', endDock);
+  $('#startAll').addEventListener('click',()=>startWorkout(0));
+  $('#swapPlan').addEventListener('click',()=>{ setNextPlan(); loadCustomIfAny(); });
+
+  function renderAll(){ maybeShowOnboard(); $('#todayDate').textContent = new Date().toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'}); loadCustomIfAny(); renderPlan(); renderStreak(); }
+  renderAll();
+})();
+</script>
+</body>
+</html>
